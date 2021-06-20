@@ -7,28 +7,19 @@ from email.parser import Parser
 from email.utils import parseaddr
 from email.header import decode_header
 
-from apscheduler.schedulers.blocking import BlockingScheduler
+from base import Base2FA
 
-from py2fa import _notification, save_to_clipboard, config
-
-def test_re(content):
-    link_result = re.findall(r'(http.*?(licenses|validation|confirmemail|authorizedevice|verification|register|verify|activate).*?)\"', content)
-    code_result = re.findall(r'(验证码|code).*?(\d{4,8})', content)
-    if link_result:
-        return link_result[0][0]
-    if code_result:
-        return code_result[0][1]
-    return
-
-class Email2FA(object):
+class Email2FA(Base2FA):
 
     def __init__(self, username, password, pop_server):
+        super(Email2FA, self).__init__()
         self.username = username
         self.password = password
         self.pop_server = pop_server
-        self.logging = logging.getLogger(__name__)
+        self.logging = logging.getLogger(username)
         self.connect()
         self.email_num = self.get_email_count()
+        self.logging.debug(self.email_num)
     
     def __del__(self):
         self.close()
@@ -37,10 +28,14 @@ class Email2FA(object):
         self.server = poplib.POP3_SSL(self.pop_server)
         self.server.user(self.username)
         self.server.pass_(self.password)
-        self.logging.info(self.server.getwelcome())
+        self.logging.debug(self.server.getwelcome())
     
     def close(self):
         self.server.close()
+    
+    def re_connect(self):
+        self.close()
+        self.connect()
 
     def get_email_count(self):
         email_num = len(self.server.list()[1])
@@ -98,30 +93,22 @@ class Email2FA(object):
             data['code'] = code_result[0][1]
         return data
     
-    def notify(self):
+    def _notify(self):
         temp = self.get_code()
         if temp:
             self.logging.debug(temp)
             if temp.get('code'):
-                _notification(temp['code'], temp['sender'] + ' - ' + temp['title'])
-                save_to_clipboard(temp['code'])
+                self.notification(temp['code'], temp['sender'] + ' - ' + temp['title'])
+                self.notify_to_bark(temp['sender'] + ':' + temp['title'], temp['code'], temp['code'])
+                self.save_to_clipboard(temp['code'])
     
     def update_hook(self):
+        # rev = self.server.noop()
+        # self.logging.debug(rev)
+        self.re_connect()
         self.logging.debug('checking')
+        self.logging.debug(self.email_num)
         if self.email_num < self.get_email_count():
+            self.logging.debug('receive new email')
             self.email_num = self.get_email_count()
-            self.notify()
-
-if __name__ == '__main__':
-    logging.basicConfig(level = logging.INFO,format = '%(asctime)s - %(processName)s - %(lineno)d - %(name)s - %(levelname)s - %(message)s')
-    logger = logging.getLogger(__name__)
-    logging.getLogger("apscheduler.executors.default").setLevel(logging.ERROR)
-
-    email_list = []
-    scheduler = BlockingScheduler()
-    for i in config['email']:
-        email_list.append(Email2FA(i['username'], i['password'], i.get('pop_server', 'pop.' + i['username'].split('@')[1])))
-    for i in email_list:
-        scheduler.add_job(i.update_hook, 'interval', seconds = 3)
-    
-    scheduler.start()
+            self._notify()

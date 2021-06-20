@@ -2,13 +2,9 @@ import os
 import re
 import time
 import logging
-
 import sqlite3
-from apscheduler.schedulers.blocking import BlockingScheduler
 
-from py2fa import _notification, save_to_clipboard
-
-db_file = os.path.expanduser('~/Library/Messages/chat.db')
+from base import Base2FA
 
 class LiteDB(object):
     def __init__(self, db_file):
@@ -34,10 +30,11 @@ class LiteDB(object):
         return result
 
 
-class Message2FA(object):
+class Message2FA(Base2FA):
     def __init__(self, db_file):
-        self.logging = logging.getLogger(__name__)
-        self.db = LiteDB(db_file)
+        super(Message2FA, self).__init__()
+        self.db_file = db_file
+        self.db = LiteDB(self.db_file)
         self.update_time = int(time.time())
     
     def get_message(self):
@@ -86,28 +83,18 @@ class Message2FA(object):
                     result.append(i)
         return result
     
-    def notify(self):
+    def _notify(self):
         temp = self.get_code()[0]
         self.logging.debug(temp)
         if int(time.time()) - int(temp['message_date']) < 30:
-            _notification(temp['code'], temp['text'])
-            save_to_clipboard(temp['code'])
+            self.notification(temp['code'], temp['text'])
+            self.notify_to_bark(temp['code'], temp['text'], temp['code'])
+            self.save_to_clipboard(temp['code'])
     
     def update_hook(self):
         self.logging.debug('checking')
-        update_time = int(os.path.getmtime(db_file))
+        update_time = int(os.path.getmtime(self.db_file))
         tp = abs(update_time - self.update_time)
         if not tp and tp <= 15:
             self.update_time = update_time
-            self.notify()
-
-if __name__ == "__main__":
-    logging.basicConfig(level = logging.DEBUG,format = '%(asctime)s - %(processName)s - %(name)s - %(levelname)s - %(message)s')
-    logger = logging.getLogger(__name__)
-    logging.getLogger("apscheduler.executors.default").setLevel(logging.ERROR)
-
-    mfa = Message2FA(db_file)
-    # mfa.get_code()
-    schedulers = BlockingScheduler()
-    schedulers.add_job(mfa.update_hook ,'interval', seconds = 3)
-    schedulers.start()
+            self._notify()
