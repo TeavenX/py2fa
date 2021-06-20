@@ -1,7 +1,10 @@
 # PY2FA - 全功能两步验证工具
-在macOS上实时获取iOS设备短信中的验证码并自动拷贝至剪切板；
+在macOS上实时获取iOS设备短信中的验证码并自动拷贝至剪切板
+
 ![两步验证短信](screenshots/2fa_msg.png)
+
 实时获取邮箱中的验证码、两步验证链接并自动拷贝至剪切板
+
 ![两步验证链接](screenshots/2fa_link.png)
 
 ## 用法
@@ -25,9 +28,11 @@ bark_url: # 选填 目前没有激活bark通知功能
 如果使用Gmail的账户密码登录，需要开启`安全性较低的应用的访问权限`（<font color = 'orange'>不建议</font>），推荐开启两步验证后，设置Gmail独立密码后填入配置中，参考[使用应用专用密码登录](https://support.google.com/accounts/answer/185833)
 
 4. 配置完成后打开软件可以在菜单栏看到图标
+
 ![菜单栏](screenshots/menu_icon.png)
 
 借助菜单栏按钮可以控制每个功能的开关，启动时默认所有功能打开，如果有隐私和安全性考虑可以手动关闭对应功能
+
 ![开关](screenshots/menu_switcher.png)
 
 ## 注意事项
@@ -47,7 +52,9 @@ python setup.py py2app
 
 # PY2FA - fully function tool for 2 factor authcation
 Automaticly monitor and copy 2fa code from message and email
+
 ![两步验证短信](screenshots/2fa_msg.png)
+
 ![两步验证链接](screenshots/2fa_link.png)
 
 ## Usage
@@ -70,9 +77,11 @@ bark_url: # optional TODO: bark notify is currently inactive
 3. You must turn on POP3 protocol in email-provider web setting. if it's Gmail, you may need to turn on `less secure apps` which is <font color='orange'>not recommended</font>. The better way is turn on 2fa for your Gmail account and set up [Sign in with App Passwords](https://support.google.com/accounts/answer/6010255?p=less-secure-apps&hl=zh-Hans&visit_id=637595421375318674-3339552613&rd=1), and fill in config.yaml with the specified Gmail password.
 
 4. After step3 you can open the PY2FA.app, and there will a icon in the menu bar
+
 ![菜单栏](screenshots/menu_icon.png)
 
 You can easily turn on/off the notification/clipboard function if you worry about security or your privacy.
+
 ![开关](screenshots/menu_switcher.png)
 
 ## Notes
