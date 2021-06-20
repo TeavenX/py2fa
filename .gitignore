@@ -4,6 +4,7 @@
 .vscode/*
 .eggs/*
 __pycache__/*
-build/*
-dist/*
-config.yaml
+build*/*
+dist*/*
+*.yaml
+*DS_Store*

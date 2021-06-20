@@ -1,0 +1,5 @@
+rumps
+py2app
+pyyaml
+darkdetect
+apscheduler
